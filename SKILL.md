@@ -328,6 +328,7 @@ Manim 使用系统字体渲染 `Text` 对象，确保系统有中文字体：
 
 ## 相关资源
 
+- **GitHub 仓库**：https://github.com/hzsunzixiang/manim-animation-skill
 - **Manim 技术指南**：`references/manim_guide.md` — 详细的 Manim + voiceover + 字幕技术文档
 - **环境检查脚本**：`scripts/check_environment.py` — 一键检查所有依赖
 - **渲染流水线脚本**：`scripts/run_pipeline.py` — 一键渲染 + 字幕烧录

@@ -5,7 +5,7 @@ description: "Create mathematical animations with synchronized voiceover narrati
 
 # Manim Animation: Animation + Voiceover + Subtitle Generator
 
-**Author:** ericksun
+**Author:** ericksun（孙自翔）
 
 ## Overview
 

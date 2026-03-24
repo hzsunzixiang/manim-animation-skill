@@ -12,6 +12,8 @@ import subprocess
 import sys
 import os
 import glob
+import re
+import shlex
 
 
 # Quality mapping
@@ -22,15 +24,42 @@ QUALITY_MAP = {
     "production": {"flag": "-qp", "cfg": "production_quality", "dir": "2160p60"},
 }
 
+# Strict pattern for scene class names (valid Python identifiers)
+SCENE_NAME_PATTERN = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 
-def run_cmd(cmd, desc=None):
-    """Run a command, print output, return success status."""
+
+def validate_scene_name(name):
+    """Validate that scene_name is a safe Python identifier."""
+    if not SCENE_NAME_PATTERN.match(name):
+        raise ValueError(
+            f"Invalid scene name: {name!r}. "
+            "Scene name must be a valid Python identifier "
+            "(letters, digits, underscores; cannot start with a digit)."
+        )
+    return name
+
+
+def validate_file_path(path):
+    """Validate that a file path does not contain shell metacharacters."""
+    # Allow typical path characters only
+    if re.search(r'[;&|`$(){}\[\]!#~]', path):
+        raise ValueError(
+            f"Invalid file path: {path!r}. "
+            "Path contains disallowed shell metacharacters."
+        )
+    return path
+
+
+def run_cmd(cmd_args, desc=None, cwd=None):
+    """Run a command as an argument list (shell=False), print output, return success status."""
     if desc:
         print(f"\n{'='*50}")
         print(f"  {desc}")
         print(f"{'='*50}\n")
-    print(f"  $ {cmd}\n")
-    result = subprocess.run(cmd, shell=True)
+    # Display the command in a human-readable form
+    display_cmd = " ".join(shlex.quote(str(a)) for a in cmd_args)
+    print(f"  $ {display_cmd}\n")
+    result = subprocess.run(cmd_args, cwd=cwd)
     return result.returncode == 0
 
 
@@ -55,12 +84,12 @@ def find_output_files(scene_file, scene_name, quality_dir):
 def render_scene(scene_file, scene_name, quality, working_dir=None):
     """Render manim scene."""
     q = QUALITY_MAP.get(quality, QUALITY_MAP["high"])
-    cmd = f"manim render {q['flag']} \"{scene_file}\" {scene_name}"
+    validate_scene_name(scene_name)
+    validate_file_path(scene_file)
 
-    if working_dir:
-        cmd = f"cd \"{working_dir}\" && {cmd}"
+    cmd_args = ["manim", "render", q["flag"], scene_file, scene_name]
 
-    success = run_cmd(cmd, f"Rendering: {scene_name} ({quality} quality)")
+    success = run_cmd(cmd_args, f"Rendering: {scene_name} ({quality} quality)", cwd=working_dir)
     return success
 
 
@@ -76,7 +105,7 @@ def burn_subtitles(video_file, srt_file, output_file=None, font_size=22, margin_
         output_file = f"{base}_subtitled{ext}"
 
     abs_srt = os.path.abspath(srt_file)
-    # Escape special characters in path for ffmpeg filter
+    # Escape special characters in path for ffmpeg subtitles filter
     abs_srt_escaped = abs_srt.replace("'", "'\\''").replace(":", "\\:")
 
     force_style = (
@@ -89,13 +118,15 @@ def burn_subtitles(video_file, srt_file, output_file=None, font_size=22, margin_
         f"MarginV={margin_v}"
     )
 
-    cmd = (
-        f'ffmpeg -y -i "{video_file}" '
-        f"-vf \"subtitles='{abs_srt_escaped}':force_style='{force_style}'\" "
-        f'-c:a copy "{output_file}"'
-    )
+    vf_filter = f"subtitles='{abs_srt_escaped}':force_style='{force_style}'"
 
-    success = run_cmd(cmd, "Burning SRT subtitles into video")
+    cmd_args = [
+        "ffmpeg", "-y", "-i", video_file,
+        "-vf", vf_filter,
+        "-c:a", "copy", output_file
+    ]
+
+    success = run_cmd(cmd_args, "Burning SRT subtitles into video")
 
     if success:
         print(f"\n  ✅ Subtitled video: {output_file}")
@@ -146,6 +177,18 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Validate inputs before proceeding
+    try:
+        validate_scene_name(args.scene_name)
+        validate_file_path(args.scene_file)
+        if args.working_dir:
+            validate_file_path(args.working_dir)
+        if args.output_dir:
+            validate_file_path(args.output_dir)
+    except ValueError as e:
+        print(f"\n❌ Input validation error: {e}")
+        return 1
 
     print("=" * 60)
     print("  Manim Animation Pipeline")
@@ -211,11 +254,13 @@ def main():
         atempo_filters.append(f"atempo={remaining}")
         atempo_chain = ",".join(atempo_filters)
 
-        speed_cmd = (
-            f'ffmpeg -y -i "{speed_input}" '
-            f'-filter_complex "[0:v]setpts=PTS/{speed}[v];[0:a]{atempo_chain}[a]" '
-            f'-map "[v]" -map "[a]" "{fast_file}"'
-        )
+        filter_complex = f"[0:v]setpts=PTS/{speed}[v];[0:a]{atempo_chain}[a]"
+
+        speed_cmd = [
+            "ffmpeg", "-y", "-i", speed_input,
+            "-filter_complex", filter_complex,
+            "-map", "[v]", "-map", "[a]", fast_file
+        ]
 
         success = run_cmd(speed_cmd, f"Speed up video to {speed}x")
         if success:
@@ -247,9 +292,9 @@ def main():
             else video_file
         )
         if sys.platform == "darwin":
-            os.system(f'open "{preview_file}"')
+            subprocess.run(["open", preview_file])
         elif sys.platform == "linux":
-            os.system(f'xdg-open "{preview_file}"')
+            subprocess.run(["xdg-open", preview_file])
 
     # Summary
     print(f"\n{'='*60}")

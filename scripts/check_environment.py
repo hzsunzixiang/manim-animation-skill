@@ -18,13 +18,25 @@ def warn_mark(ok):
     return "✅" if ok else "⚠️"
 
 
-def run_cmd(cmd, capture=True):
-    """Run a shell command and return (success, output)."""
+def run_cmd(cmd_args, capture=True):
+    """Run a command as argument list (shell=False) and return (success, output)."""
     try:
         result = subprocess.run(
-            cmd, shell=True, capture_output=capture, text=True, timeout=30
+            cmd_args, capture_output=capture, text=True, timeout=30
         )
         return result.returncode == 0, result.stdout.strip()
+    except Exception as e:
+        return False, str(e)
+
+
+def run_pipe(cmd1_args, cmd2_args):
+    """Run two commands connected by a pipe (safe, no shell). Returns (success, output)."""
+    try:
+        p1 = subprocess.Popen(cmd1_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        p2 = subprocess.Popen(cmd2_args, stdin=p1.stdout, stdout=subprocess.PIPE, text=True)
+        p1.stdout.close()
+        output, _ = p2.communicate(timeout=30)
+        return p2.returncode == 0, output.strip()
     except Exception as e:
         return False, str(e)
 
@@ -38,11 +50,13 @@ def check_python_version():
     return ok
 
 
-def check_command(name, cmd, install_hint):
+def check_command(name, version_cmd_str, install_hint):
     """Check if a command-line tool is available."""
     ok = shutil.which(name) is not None
     if ok:
-        success, version = run_cmd(cmd)
+        # version_cmd_str is a known safe command like "manim --version"
+        cmd_args = version_cmd_str.split()
+        success, version = run_cmd(cmd_args)
         version_str = version.split('\n')[0][:80] if success else "installed"
         print(f"  {check_mark(ok)} {name}: {version_str}")
     else:
@@ -83,7 +97,10 @@ def check_optional_package(package, import_name=None, install_hint=None):
 
 def check_ffmpeg_libx264():
     """Check if ffmpeg has libx264 encoder support (required by Manim)."""
-    ok, output = run_cmd("ffmpeg -codecs 2>&1 | grep libx264")
+    ok, output = run_pipe(
+        ["ffmpeg", "-codecs"],
+        ["grep", "libx264"]
+    )
     if ok and "libx264" in output:
         print(f"  {check_mark(True)} ffmpeg libx264 encoder: available")
         return True
@@ -96,7 +113,10 @@ def check_ffmpeg_libx264():
 
 def check_ffmpeg_libass():
     """Check if ffmpeg has libass/subtitles filter support."""
-    ok, output = run_cmd("ffmpeg -filters 2>&1 | grep -i subtitles")
+    ok, output = run_pipe(
+        ["ffmpeg", "-filters"],
+        ["grep", "-i", "subtitles"]
+    )
     if ok and "subtitles" in output:
         print(f"  {check_mark(True)} ffmpeg subtitles filter (libass): available")
         return True
@@ -112,7 +132,10 @@ def check_chinese_fonts():
     """Check if Chinese fonts are available."""
     # Try common Chinese font names
     fonts_to_check = ["PingFang SC", "Noto Sans CJK", "Microsoft YaHei", "SimHei", "WenQuanYi"]
-    ok, output = run_cmd("fc-list :lang=zh family 2>/dev/null | head -10")
+    ok, output = run_pipe(
+        ["fc-list", ":lang=zh", "family"],
+        ["head", "-10"]
+    )
     if ok and output:
         font_list = output.split('\n')[:5]
         print(f"  {check_mark(True)} Chinese fonts found:")
@@ -121,7 +144,10 @@ def check_chinese_fonts():
         return True
     else:
         # Try macOS specific check
-        ok2, output2 = run_cmd("system_profiler SPFontsDataType 2>/dev/null | grep -i pingfang | head -3")
+        ok2, output2 = run_pipe(
+            ["system_profiler", "SPFontsDataType"],
+            ["grep", "-i", "pingfang"]
+        )
         if ok2 and output2:
             print(f"  {check_mark(True)} Chinese fonts: PingFang SC (macOS built-in)")
             return True

@@ -1,6 +1,22 @@
 ---
 name: manim-animation
 description: "Create mathematical animations with synchronized voiceover narration and subtitles using Manim Community and manim-voiceover. Use when users want to create animated videos with narration, math animations with voice, educational videos with subtitles, or any request involving Manim scene generation with TTS voiceover. Trigger phrases include: manim animation, math animation, animated video with voice, manim voiceover, create animation video, or any request to generate narrated mathematical/educational animation videos."
+required_tools:
+  - name: manim
+    install: "pip install manim"
+  - name: ffmpeg
+    install: "brew install ffmpeg (macOS) / apt install ffmpeg (Linux)"
+    notes: "Must include libx264 encoder and libass (for subtitle burn-in)"
+  - name: python3
+    install: "Python 3.9+ required"
+required_packages:
+  - "manim"
+  - "manim-voiceover[gtts]"
+network_access:
+  - service: "Google TTS (gTTS)"
+    purpose: "Text-to-speech synthesis for voiceover narration"
+    required: false
+    notes: "Default TTS engine. Can be replaced with offline pyttsx3 if network is unavailable."
 ---
 
 # Manim Animation: Animation + Voiceover + Subtitle Generator

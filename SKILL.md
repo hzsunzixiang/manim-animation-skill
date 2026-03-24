@@ -1,55 +1,55 @@
 ---
 name: manim-animation
-description: "Create mathematical animations with synchronized voiceover narration and subtitles using Manim Community and manim-voiceover. Use when users want to create animated videos with narration, math animations with voice, educational videos with subtitles, or any request involving Manim scene generation with TTS voiceover. Trigger phrases include: manim animation, math animation, animated video with voice, 数学动画, 动画配音, 动画字幕, manim voiceover, create animation video, or any request to generate narrated mathematical/educational animation videos."
+description: "Create mathematical animations with synchronized voiceover narration and subtitles using Manim Community and manim-voiceover. Use when users want to create animated videos with narration, math animations with voice, educational videos with subtitles, or any request involving Manim scene generation with TTS voiceover. Trigger phrases include: manim animation, math animation, animated video with voice, manim voiceover, create animation video, or any request to generate narrated mathematical/educational animation videos."
 ---
 
-# Manim Animation: 动画 + 配音 + 字幕 生成器
+# Manim Animation: Animation + Voiceover + Subtitle Generator
 
-**Author:** ericksun（孙自翔）
+**Author:** ericksun
 
-## 概述
+## Overview
 
-本技能使用 Manim Community 生成数学/教育动画，并通过 manim-voiceover 插件集成 TTS 语音旁白和同步字幕。所有处理均在本地运行，无需付费 API。
+This skill uses Manim Community to generate mathematical/educational animations, with manim-voiceover plugin integration for TTS voice narration and synchronized subtitles. All processing runs locally — no paid API required.
 
-**核心能力：**
-- 🎬 **动画生成**：使用 Manim 创建数学公式、几何图形、图表等动画
-- 🎙️ **语音旁白**：通过 manim-voiceover 插件集成 TTS，动画与语音自动同步
-- 📝 **字幕系统**：画面内字幕（Manim Text）+ SRT 外挂字幕（ffmpeg 烧录）
-- 🔄 **一键流水线**：描述需求 → 生成代码 → 渲染视频 → 烧录字幕
+**Core Capabilities:**
+- 🎬 **Animation Generation**: Create animations of math formulas, geometric shapes, charts, and more with Manim
+- 🎙️ **Voice Narration**: Integrate TTS via manim-voiceover plugin with automatic animation-voice sync
+- 📝 **Subtitle System**: In-scene subtitles (Manim Text) + SRT external subtitles (ffmpeg burn-in)
+- 🔄 **One-Click Pipeline**: Describe requirements → Generate code → Render video → Burn subtitles
 
-**TTS 引擎（优先 gTTS）：**
-- **gTTS**（推荐）：Google 免费 TTS，支持中文，无需 API Key
-- **pyttsx3**（备选）：离线 TTS，无需网络
-- **Azure/OpenAI/ElevenLabs**（高质量）：需付费 API Key
+**TTS Engines (gTTS preferred):**
+- **gTTS** (Recommended): Google free TTS, supports Chinese, no API Key needed
+- **pyttsx3** (Fallback): Offline TTS, no network required
+- **Azure/OpenAI/ElevenLabs** (High quality): Requires paid API Key
 
-## 前置条件
+## Prerequisites
 
-### 🔍 一键环境检查
+### 🔍 One-Click Environment Check
 
-**首次使用前，运行环境检查脚本确认所有依赖已就绪：**
+**Before first use, run the environment check script to verify all dependencies are ready:**
 
 ```bash
 python3 {SKILL_DIR}/scripts/check_environment.py
 ```
 
-该脚本检查：
-- ✅ Manim Community 安装（`manim` 命令）
-- ✅ manim-voiceover + gTTS 插件
-- ✅ FFmpeg + libx264 编码器（Manim 硬编码依赖，**必需**）
-- ✅ FFmpeg + libass（用于 SRT 字幕烧录）
-- ✅ Python 依赖
-- ✅ 中文字体可用性
+This script checks:
+- ✅ Manim Community installation (`manim` command)
+- ✅ manim-voiceover + gTTS plugin
+- ✅ FFmpeg + libx264 encoder (hardcoded Manim dependency, **required**)
+- ✅ FFmpeg + libass (for SRT subtitle burn-in)
+- ✅ Python dependencies
+- ✅ Chinese font availability
 
-### 必需的系统工具
+### Required System Tools
 
-- **Manim Community**：`pip install manim`
-- **FFmpeg（含 libx264 + libass）**：Manim 硬编码使用 `libx264` 编码器渲染视频，字幕烧录需要 `libass`
-  - macOS（Homebrew）：`brew install ffmpeg`（默认包含 x264 和 libass）
-  - macOS（Conda）：`conda install x264 -c conda-forge`（**⚠️ conda 的 ffmpeg 默认不含 libx264**）
-  - Linux：`sudo apt install ffmpeg libx264-dev libass-dev`
-- **Python 3.9+** 及 pip
+- **Manim Community**: `pip install manim`
+- **FFmpeg (with libx264 + libass)**: Manim hardcodes the `libx264` encoder for video rendering; subtitle burn-in requires `libass`
+  - macOS (Homebrew): `brew install ffmpeg` (includes x264 and libass by default)
+  - macOS (Conda): `conda install x264 -c conda-forge` (**⚠️ conda's ffmpeg does not include libx264 by default**)
+  - Linux: `sudo apt install ffmpeg libx264-dev libass-dev`
+- **Python 3.9+** and pip
 
-### 必需的 Python 包
+### Required Python Packages
 
 ```bash
 # Core
@@ -59,71 +59,71 @@ pip install manim
 pip install "manim-voiceover[gtts]"
 ```
 
-### 可选（增强功能）
+### Optional (Enhanced Features)
 
-- **pyttsx3**：离线 TTS（`pip install "manim-voiceover[pyttsx3]"`）
+- **pyttsx3**: Offline TTS (`pip install "manim-voiceover[pyttsx3]"`)
 
-### ⚡ 快速安装
+### ⚡ Quick Install
 
 ```bash
 pip install manim "manim-voiceover[gtts]"
 
-# macOS (Homebrew) — 推荐，自带 libx264 + libass
+# macOS (Homebrew) — Recommended, includes libx264 + libass
 brew install ffmpeg
 
-# macOS (Conda) — 需额外安装 x264，否则 Manim 渲染会报错 UnknownCodecError: libx264
+# macOS (Conda) — Requires additional x264 install, otherwise Manim render will fail with UnknownCodecError: libx264
 conda install x264 -c conda-forge
 
-# 验证 ffmpeg 支持 libx264 和 libass
-ffmpeg -codecs 2>&1 | grep libx264     # 应显示 encoders: libx264
-ffmpeg -filters 2>&1 | grep subtitles  # 应显示 subtitles filter
+# Verify ffmpeg supports libx264 and libass
+ffmpeg -codecs 2>&1 | grep libx264     # Should show: encoders: libx264
+ffmpeg -filters 2>&1 | grep subtitles  # Should show: subtitles filter
 ```
 
-## 工作流程
+## Workflow
 
-### 快速开始 — 一键运行
+### Quick Start — One-Click Run
 
-用户描述需求后，使用流水线脚本一键完成：
+After the user describes their requirements, use the pipeline script for one-click execution:
 
 ```bash
 python3 {SKILL_DIR}/scripts/run_pipeline.py \
-    --scene_file <场景文件.py> \
+    --scene_file <scene_file.py> \
     --scene_name <SceneName> \
     --quality high \
     --burn_subtitles
 ```
 
-**常用选项：**
+**Common Options:**
 
-| 选项 | 默认值 | 说明 |
-|------|--------|------|
-| `--scene_file` | 必需 | Manim 场景 Python 文件 |
-| `--scene_name` | 必需 | 场景类名 |
-| `--quality` | `high` | 渲染质量：`low`/`medium`/`high`/`production` |
-| `--burn_subtitles` | False | 是否用 ffmpeg 烧录 SRT 字幕 |
-| `--speed` | `1.35` | 播放倍速（如 1.35 表示加速到 1.35 倍，设为 1.0 则不加速） |
-| `--preview` | False | 渲染后自动打开预览 |
-| `--output_dir` | `./output` | 输出目录 |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--scene_file` | Required | Manim scene Python file |
+| `--scene_name` | Required | Scene class name |
+| `--quality` | `high` | Render quality: `low`/`medium`/`high`/`production` |
+| `--burn_subtitles` | False | Whether to burn SRT subtitles with ffmpeg |
+| `--speed` | `1.35` | Playback speed multiplier (e.g., 1.35 means 1.35x speed; set to 1.0 to disable) |
+| `--preview` | False | Auto-open preview after rendering |
+| `--output_dir` | `./output` | Output directory |
 
-### 完整工作流程（4 步）
+### Complete Workflow (4 Steps)
 
-#### 步骤 1：理解用户需求并生成 Manim 场景代码
+#### Step 1: Understand User Requirements and Generate Manim Scene Code
 
-根据用户描述，生成 Manim 场景 Python 文件。场景代码需遵循以下模式：
+Based on the user's description, generate a Manim scene Python file. Scene code should follow these patterns:
 
-**无配音模式**（纯动画）：
+**No-voiceover mode** (animation only):
 
 ```python
 from manim import *
 
 class MyScene(Scene):
     def construct(self):
-        title = Text("标题", font_size=48, color=BLUE)
+        title = Text("Title", font_size=48, color=BLUE)
         self.play(Write(title))
         self.wait(1)
 ```
 
-**配音模式**（动画 + 语音 + 字幕）：
+**Voiceover mode** (animation + voice + subtitles):
 
 ```python
 from manim import *
@@ -143,46 +143,46 @@ class MyScene(VoiceoverScene):
         return VGroup(bg, sub)
 
     def construct(self):
-        self.set_speech_service(GTTSService(lang="zh"))
+        self.set_speech_service(GTTSService(lang="en"))
 
-        sub_text = "欢迎来到演示"
+        sub_text = "Welcome to the demo"
         with self.voiceover(text=sub_text) as tracker:
             sub = self._make_subtitle(sub_text)
-            title = Text("演示", font_size=48)
+            title = Text("Demo", font_size=48)
             self.play(Write(title), FadeIn(sub), run_time=tracker.duration)
 
         self.play(FadeOut(sub))
         self.wait(0.3)
 ```
 
-**关键模式 — voiceover 上下文管理器：**
+**Key Pattern — voiceover context manager:**
 
 ```python
-with self.voiceover(text="语音文本") as tracker:
-    # tracker.duration = TTS 语音时长（秒）
-    # 在此块内的动画会与语音自动同步
+with self.voiceover(text="Speech text") as tracker:
+    # tracker.duration = TTS speech duration (seconds)
+    # Animations within this block auto-sync with voice
     self.play(SomeAnimation(), run_time=tracker.duration)
 ```
 
-`with self.voiceover(text=...) as tracker` 做了三件事：
-1. 调用 TTS 引擎生成语音
-2. 自动计算语音时长
-3. 提供 `tracker.duration` 让动画与语音同步
+`with self.voiceover(text=...) as tracker` does three things:
+1. Calls the TTS engine to generate speech audio
+2. Automatically calculates speech duration
+3. Provides `tracker.duration` to sync animations with voice
 
-**字幕最佳实践：**
-- 画面内字幕：使用 `_make_subtitle()` 辅助函数，在屏幕底部显示带暗背景的白色粗体文字
-- **防止溢出**：`_make_subtitle()` 会自动检测字幕宽度，超出画面时等比缩放（`scale_to_fit_width`），使用 `font_size=22` 以适配长文本
-- **字幕同步**：在 voiceover 块内的**第一个** `self.play()` 中就 `FadeIn(sub)`，确保字幕与声音同步出现，不要延后
-- 每个 voiceover 块开始时 FadeIn 字幕，结束后 FadeOut
-- 字幕文本应与 voiceover text 相同
+**Subtitle Best Practices:**
+- In-scene subtitles: Use the `_make_subtitle()` helper to display white bold text with dark background at the bottom of the screen
+- **Overflow prevention**: `_make_subtitle()` auto-detects subtitle width and scales proportionally (`scale_to_fit_width`) when exceeding frame bounds; uses `font_size=22` for long text
+- **Subtitle sync**: `FadeIn(sub)` in the **first** `self.play()` within the voiceover block ensures subtitles appear in sync with voice — do not delay
+- FadeIn subtitle at the start of each voiceover block, FadeOut after it ends
+- Subtitle text should match the voiceover text
 
-**⚠️ 避免双字幕：** 如果场景代码中已使用 `_make_subtitle()` 渲染了画面内字幕，则 **不要** 再用 `--burn_subtitles` 烧录 SRT 字幕，否则画面上会出现两层重叠的字幕。两种字幕方案只能选其一：
-- 方案 A（推荐）：代码内使用 `_make_subtitle()` 渲染字幕，不烧录 SRT
-- 方案 B：代码内不渲染字幕，通过 `--burn_subtitles` 烧录 SRT
+**⚠️ Avoid Double Subtitles:** If the scene code already uses `_make_subtitle()` to render in-scene subtitles, **do not** also use `--burn_subtitles` to burn SRT subtitles, otherwise two overlapping subtitle layers will appear. Choose only one approach:
+- Option A (Recommended): Render subtitles in code with `_make_subtitle()`, do not burn SRT
+- Option B: Do not render subtitles in code, burn SRT via `--burn_subtitles`
 
-#### 步骤 2：配置渲染参数
+#### Step 2: Configure Rendering Parameters
 
-在场景文件同目录创建 `manim.cfg`：
+Create `manim.cfg` in the same directory as the scene file:
 
 ```ini
 [CLI]
@@ -193,26 +193,26 @@ preview = False
 video_codec = h264
 ```
 
-**质量对照表：**
+**Quality Reference Table:**
 
-| 质量 | 标志 | 分辨率 | FPS | manim.cfg 值 |
-|------|------|--------|-----|-------------|
+| Quality | Flag | Resolution | FPS | manim.cfg Value |
+|---------|------|------------|-----|-----------------|
 | Low | -ql | 480p | 15 | low_quality |
 | Medium | -qm | 720p | 30 | medium_quality |
 | High | -qh | 1080p | 60 | high_quality |
 | Production | -qp | 2160p | 60 | production_quality |
 
-#### 步骤 3：渲染视频
+#### Step 3: Render Video
 
 ```bash
 manim render <scene_file.py> <SceneName>
 ```
 
-输出路径模式：`media/videos/<file>/<resolution>/<SceneName>.mp4`
+Output path pattern: `media/videos/<file>/<resolution>/<SceneName>.mp4`
 
-#### 步骤 4：烧录 SRT 字幕（可选）
+#### Step 4: Burn SRT Subtitles (Optional)
 
-manim-voiceover 会自动在视频同目录生成 `.srt` 字幕文件。使用 ffmpeg 烧录：
+manim-voiceover automatically generates `.srt` subtitle files in the same directory as the video. Burn with ffmpeg:
 
 ```bash
 ffmpeg -y -i <video.mp4> \
@@ -221,13 +221,13 @@ ffmpeg -y -i <video.mp4> \
     <output_subtitled.mp4>
 ```
 
-**⚠️ 双字幕陷阱**：如果场景 Python 代码中已经用 `_make_subtitle()` 渲染了画面内字幕，就 **不要** 再烧录 SRT 字幕，否则会出现两层重叠字幕。
+**⚠️ Double Subtitle Pitfall**: If the scene Python code already renders in-scene subtitles with `_make_subtitle()`, **do not** also burn SRT subtitles, otherwise two overlapping subtitle layers will appear.
 
-**注意**：ffmpeg 需要 libass 支持。macOS 用 `brew install ffmpeg` 通常已包含。Conda 环境需额外安装 `conda install x264 -c conda-forge`。
+**Note**: ffmpeg requires libass support. On macOS, `brew install ffmpeg` typically includes it. Conda environments may require `conda install x264 -c conda-forge`.
 
-#### 步骤 5：加速视频（可选）
+#### Step 5: Speed Up Video (Optional)
 
-使用 ffmpeg 对视频进行倍速处理，默认加速到 1.35 倍：
+Use ffmpeg to speed up the video, default 1.35x:
 
 ```bash
 SPEED=1.35
@@ -237,98 +237,98 @@ ffmpeg -y -i <input.mp4> \
     <output_fast.mp4>
 ```
 
-**注意**：加速应在最终输出步骤执行。如果场景代码已有画面内字幕（`_make_subtitle`），加速输入应使用原始视频（非 SRT 烧录版），避免双字幕。`run_pipeline.py` 的 `--speed` 参数已自动处理此逻辑。
+**Note**: Speed-up should be the final output step. If the scene code has in-scene subtitles (`_make_subtitle`), the speed-up input should use the original video (not the SRT-burned version) to avoid double subtitles. The `run_pipeline.py` `--speed` parameter handles this logic automatically.
 
-## Manim 常用动画速查
+## Manim Common Animation Reference
 
-### 创建/显示动画
-- `Write(text)` — 书写文字
-- `Create(mobject)` — 绘制形状
-- `FadeIn(mobject)` / `FadeOut(mobject)` — 淡入淡出
-- `DrawBorderThenFill(mobject)` — 先画边框再填充
+### Create/Display Animations
+- `Write(text)` — Write text
+- `Create(mobject)` — Draw shapes
+- `FadeIn(mobject)` / `FadeOut(mobject)` — Fade in/out
+- `DrawBorderThenFill(mobject)` — Draw border then fill
 
-### 变换动画
-- `Transform(source, target)` — 变形
-- `ReplacementTransform(source, target)` — 替换变形
-- `TransformMatchingShapes(source, target)` — 形状匹配变形
+### Transform Animations
+- `Transform(source, target)` — Morph
+- `ReplacementTransform(source, target)` — Replacement morph
+- `TransformMatchingShapes(source, target)` — Shape-matching morph
 
-### 移动/缩放
-- `mobject.animate.to_edge(UP)` — 移动到边缘
-- `mobject.animate.shift(RIGHT * 2)` — 平移
-- `mobject.animate.scale(2)` — 缩放
-- `Rotate(mobject, angle=PI)` — 旋转
+### Move/Scale
+- `mobject.animate.to_edge(UP)` — Move to edge
+- `mobject.animate.shift(RIGHT * 2)` — Translate
+- `mobject.animate.scale(2)` — Scale
+- `Rotate(mobject, angle=PI)` — Rotate
 
-### 常用对象
-- `Text("文字", font_size=48, color=BLUE)` — 文字
-- `MathTex(r"e^{i\pi}+1=0")` — LaTeX 公式
-- `Circle(radius=1, color=RED)` — 圆
-- `Square(side_length=2, color=GREEN)` — 正方形
-- `Arrow(start, end)` — 箭头
-- `NumberPlane()` — 坐标平面
-- `Axes(x_range, y_range)` — 坐标轴
+### Common Objects
+- `Text("Text", font_size=48, color=BLUE)` — Text
+- `MathTex(r"e^{i\pi}+1=0")` — LaTeX formula
+- `Circle(radius=1, color=RED)` — Circle
+- `Square(side_length=2, color=GREEN)` — Square
+- `Arrow(start, end)` — Arrow
+- `NumberPlane()` — Coordinate plane
+- `Axes(x_range, y_range)` — Axes
 
-### 分组与排列
-- `VGroup(obj1, obj2)` — 垂直分组
-- `group.arrange(RIGHT, buff=0.5)` — 水平排列
-- `BackgroundRectangle(obj, color=BLACK, fill_opacity=0.6)` — 背景矩形
+### Grouping and Layout
+- `VGroup(obj1, obj2)` — Vertical group
+- `group.arrange(RIGHT, buff=0.5)` — Horizontal arrangement
+- `BackgroundRectangle(obj, color=BLACK, fill_opacity=0.6)` — Background rectangle
 
-## 已知问题与解决方案
+## Known Issues and Solutions
 
-### ⚠️ libx264 编解码器缺失（最常见问题）
+### ⚠️ Missing libx264 Codec (Most Common Issue)
 
-**症状**：`UnknownCodecError: libx264`
+**Symptom**: `UnknownCodecError: libx264`
 
-**根因**：Manim 在 `scene_file_writer.py` 中**硬编码**使用 `libx264` 编码器（无法通过 config/cfg 覆盖），但 conda 环境的 ffmpeg 编译时 `--disable-gpl`，不包含 GPL 许可的 libx264。
+**Root Cause**: Manim hardcodes the `libx264` encoder in `scene_file_writer.py` (cannot be overridden via config/cfg), but conda environment's ffmpeg is compiled with `--disable-gpl` and does not include the GPL-licensed libx264.
 
-**解决**：
+**Solution**:
 ```bash
-# Conda 环境（最常见场景）
+# Conda environment (most common scenario)
 conda install x264 -c conda-forge
-# 安装后 conda-forge 的 ffmpeg 会自动重新链接 x264 库
+# After installation, conda-forge's ffmpeg will auto-relink the x264 library
 
-# 验证
+# Verify
 ffmpeg -codecs 2>&1 | grep libx264
-# 应输出包含: encoders: libx264 libx264rgb
+# Output should include: encoders: libx264 libx264rgb
 ```
 
-**注意**：`brew install ffmpeg` 安装的 ffmpeg 自带 x264，但 conda 环境优先使用自己安装的 ffmpeg，不会使用 Homebrew 版本。
+**Note**: `brew install ffmpeg` installs ffmpeg with built-in x264, but conda environments prioritize their own ffmpeg and will not use the Homebrew version.
 
-### setuptools 兼容性
-`manim-voiceover` 依赖 `pkg_resources`，Python 3.12+ 可能报错：
+### setuptools Compatibility
+`manim-voiceover` depends on `pkg_resources`, which may fail on Python 3.12+:
 ```bash
 pip install "setuptools>=69.0,<72.0"
 ```
 
-### ffmpeg 缺少 libass
-SRT 字幕烧录需要 libass。macOS：
+### ffmpeg Missing libass
+SRT subtitle burn-in requires libass. macOS:
 ```bash
 brew install ffmpeg
-# 验证
+# Verify
 ffmpeg -filters 2>&1 | grep subtitles
 ```
 
-Linux：
+Linux:
 ```bash
 sudo apt install libass-dev
-# 可能需要重新编译 ffmpeg
+# May need to recompile ffmpeg
 ```
 
-### gTTS 网络问题
-gTTS 需要访问 Google TTS 服务，如网络不通可切换为 pyttsx3 离线引擎：
+### gTTS Network Issues
+gTTS requires access to Google TTS service. If network is unavailable, switch to pyttsx3 offline engine:
 ```python
 from manim_voiceover.services.pyttsx3 import Pyttsx3Service
 self.set_speech_service(Pyttsx3Service())
 ```
 
-### 中文字体
-Manim 使用系统字体渲染 `Text` 对象，确保系统有中文字体：
-- macOS：PingFang SC（系统自带）
-- Linux：`sudo apt install fonts-noto-cjk`
-- 指定字体：`Text("文字", font="PingFang SC")`
+### Chinese Fonts
+Manim uses system fonts to render `Text` objects. Ensure Chinese fonts are available:
+- macOS: PingFang SC (built-in)
+- Linux: `sudo apt install fonts-noto-cjk`
+- Specify font: `Text("Text", font="PingFang SC")`
 
-## 相关资源
+## Related Resources
 
-- **GitHub 仓库**：https://github.com/hzsunzixiang/manim-animation-skill
-- **Manim 技术指南**：`references/manim_guide.md` — 详细的 Manim + voiceover + 字幕技术文档
-- **环境检查脚本**：`scripts/check_environment.py` — 一键检查所有依赖
-- **渲染流水线脚本**：`scripts/run_pipeline.py` — 一键渲染 + 字幕烧录
+- **GitHub Repository**: https://github.com/hzsunzixiang/manim-animation-skill
+- **Manim Technical Guide**: `references/manim_guide.md` — Detailed Manim + voiceover + subtitle technical documentation
+- **Environment Check Script**: `scripts/check_environment.py` — One-click dependency check
+- **Render Pipeline Script**: `scripts/run_pipeline.py` — One-click render + subtitle burn-in

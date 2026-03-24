@@ -1,37 +1,37 @@
-# Manim Animation 技术指南
+# Manim Animation Technical Guide
 
-## 目录
+## Table of Contents
 
-1. [Manim Community 概览](#manim-community-概览)
-2. [场景代码结构](#场景代码结构)
-3. [配音集成（manim-voiceover）](#配音集成manim-voiceover)
-4. [字幕系统](#字幕系统)
-5. [常用动画模式](#常用动画模式)
-6. [高级技巧](#高级技巧)
-7. [排错指南](#排错指南)
-
----
-
-## Manim Community 概览
-
-Manim Community（manim）是由社区维护的数学动画引擎，源自 3Blue1Brown 的 Grant Sanderson 创建的原版 manimgl。
-
-**核心理念**：用 Python 代码描述数学动画，一切可编程、可版本控制、可自动化。
-
-### 版本选择
-
-| 版本 | 包名 | 特点 |
-|------|------|------|
-| **Manim Community** | `manim` | 社区维护，文档完善，插件生态丰富 |
-| manimgl | `manimgl` | 3B1B 个人版，OpenGL 渲染，实时预览 |
-
-**本 skill 使用 Manim Community（`pip install manim`）。**
+1. [Manim Community Overview](#manim-community-overview)
+2. [Scene Code Structure](#scene-code-structure)
+3. [Voiceover Integration (manim-voiceover)](#voiceover-integration-manim-voiceover)
+4. [Subtitle System](#subtitle-system)
+5. [Common Animation Patterns](#common-animation-patterns)
+6. [Advanced Tips](#advanced-tips)
+7. [Troubleshooting Guide](#troubleshooting-guide)
 
 ---
 
-## 场景代码结构
+## Manim Community Overview
 
-### 基础场景（纯动画）
+Manim Community (manim) is a community-maintained mathematical animation engine, derived from the original manimgl created by Grant Sanderson of 3Blue1Brown.
+
+**Core Philosophy**: Describe mathematical animations with Python code — everything is programmable, version-controllable, and automatable.
+
+### Version Selection
+
+| Version | Package | Features |
+|---------|---------|----------|
+| **Manim Community** | `manim` | Community-maintained, well-documented, rich plugin ecosystem |
+| manimgl | `manimgl` | 3B1B's personal version, OpenGL rendering, real-time preview |
+
+**This skill uses Manim Community (`pip install manim`).**
+
+---
+
+## Scene Code Structure
+
+### Basic Scene (Animation Only)
 
 ```python
 from manim import *
@@ -40,7 +40,7 @@ class BasicScene(Scene):
     def construct(self):
         # Create objects
         circle = Circle(radius=1.5, color=RED, fill_opacity=0.5)
-        label = Text("圆形", font_size=24)
+        label = Text("Circle", font_size=24)
         label.next_to(circle, DOWN)
 
         # Animate
@@ -54,7 +54,7 @@ class BasicScene(Scene):
         self.wait(1)
 ```
 
-### 配音场景（动画 + 语音 + 字幕）
+### Voiceover Scene (Animation + Voice + Subtitles)
 
 ```python
 from manim import *
@@ -74,11 +74,11 @@ class NarrationScene(VoiceoverScene):
         return VGroup(bg, sub)
 
     def construct(self):
-        self.set_speech_service(GTTSService(lang="zh"))
+        self.set_speech_service(GTTSService(lang="en"))
 
         # Scene 1: Title
-        title = Text("标题", font_size=48, color=BLUE)
-        sub_text = "欢迎来到演示视频。"
+        title = Text("Title", font_size=48, color=BLUE)
+        sub_text = "Welcome to the demo video."
         with self.voiceover(text=sub_text) as tracker:
             sub = self._make_subtitle(sub_text)
             # FadeIn(sub) in the FIRST play() to sync subtitle with voice
@@ -89,7 +89,7 @@ class NarrationScene(VoiceoverScene):
         # Scene 2: Content
         self.play(FadeOut(title))
         circle = Circle(radius=1.5, color=RED, fill_opacity=0.5)
-        sub_text = "让我们创建一个圆形。"
+        sub_text = "Let's create a circle."
         with self.voiceover(text=sub_text) as tracker:
             sub = self._make_subtitle(sub_text)
             self.play(Create(circle), FadeIn(sub), run_time=tracker.duration)
@@ -99,59 +99,59 @@ class NarrationScene(VoiceoverScene):
 
 ---
 
-## 配音集成（manim-voiceover）
+## Voiceover Integration (manim-voiceover)
 
-### TTS 引擎对比
+### TTS Engine Comparison
 
-| 引擎 | 安装 | 费用 | 网络 | 质量 | 中文 |
-|------|------|------|------|------|------|
-| **gTTS** | `pip install "manim-voiceover[gtts]"` | 免费 | 需要 | 中等 | ✅ |
-| **pyttsx3** | `pip install "manim-voiceover[pyttsx3]"` | 免费 | 不需要 | 较低 | ✅ |
-| **Azure** | `pip install "manim-voiceover[azure]"` | 付费 | 需要 | 高 | ✅ |
-| **OpenAI** | `pip install "manim-voiceover[openai]"` | 付费 | 需要 | 高 | ✅ |
-| **ElevenLabs** | `pip install "manim-voiceover[elevenlabs]"` | 付费 | 需要 | 很高 | ✅ |
+| Engine | Installation | Cost | Network | Quality | Chinese |
+|--------|-------------|------|---------|---------|---------|
+| **gTTS** | `pip install "manim-voiceover[gtts]"` | Free | Required | Medium | ✅ |
+| **pyttsx3** | `pip install "manim-voiceover[pyttsx3]"` | Free | Not required | Lower | ✅ |
+| **Azure** | `pip install "manim-voiceover[azure]"` | Paid | Required | High | ✅ |
+| **OpenAI** | `pip install "manim-voiceover[openai]"` | Paid | Required | High | ✅ |
+| **ElevenLabs** | `pip install "manim-voiceover[elevenlabs]"` | Paid | Required | Very High | ✅ |
 
-### 核心模式
+### Core Pattern
 
 ```python
-# 1. 初始化 TTS 引擎
-self.set_speech_service(GTTSService(lang="zh"))
+# 1. Initialize TTS engine
+self.set_speech_service(GTTSService(lang="en"))
 
-# 2. voiceover 上下文管理器
-with self.voiceover(text="语音文本") as tracker:
-    # tracker.duration — TTS 语音时长（秒）
-    # tracker.time_until_bookmark("mark1") — 到标记点的时间
+# 2. voiceover context manager
+with self.voiceover(text="Speech text") as tracker:
+    # tracker.duration — TTS speech duration (seconds)
+    # tracker.time_until_bookmark("mark1") — Time to bookmark
     self.play(SomeAnimation(), run_time=tracker.duration)
 
-# 3. 使用书签（bookmark）精确对齐
+# 3. Use bookmarks for precise alignment
 with self.voiceover(
-    text='第一部分，<bookmark mark="A"/>第二部分。'
+    text='Part one, <bookmark mark="A"/>Part two.'
 ) as tracker:
     self.play(animation1, run_time=tracker.time_until_bookmark("A"))
     self.play(animation2, run_time=tracker.duration - tracker.time_until_bookmark("A"))
 ```
 
-### 音频缓存
+### Audio Cache
 
-manim-voiceover 会缓存生成的 TTS 音频到 `media/voiceovers/` 目录：
-- 相同文本不会重复生成
-- 修改文本后自动重新生成
-- 清除缓存：`rm -rf media/voiceovers/`
+manim-voiceover caches generated TTS audio in the `media/voiceovers/` directory:
+- Identical text will not be regenerated
+- Modified text triggers automatic regeneration
+- Clear cache: `rm -rf media/voiceovers/`
 
-### SRT 字幕自动生成
+### SRT Subtitle Auto-Generation
 
-manim-voiceover 会自动在视频同目录生成 `.srt` 字幕文件，格式标准，可被任何播放器加载。
+manim-voiceover automatically generates `.srt` subtitle files in the same directory as the video, in standard format compatible with any media player.
 
 ---
 
-## 字幕系统
+## Subtitle System
 
-### 方案 1：画面内字幕（Manim Text 对象）
+### Option 1: In-Scene Subtitles (Manim Text Objects)
 
-在 Manim 画面内直接渲染字幕文本，作为动画的一部分。
+Render subtitle text directly within the Manim scene as part of the animation.
 
-**优点**：无需额外工具，字幕是动画的一部分
-**缺点**：不可被播放器开关
+**Pros**: No additional tools needed; subtitles are part of the animation
+**Cons**: Cannot be toggled on/off by the media player
 
 ```python
 def _make_subtitle(self, text_str):
@@ -171,16 +171,16 @@ with self.voiceover(text=sub_text) as tracker:
 self.play(FadeOut(sub))
 ```
 
-**⚠️ 字幕溢出保护**：`_make_subtitle()` 中使用 `scale_to_fit_width` 确保长文本不会超出画面左右边界。`font_size=22` 比默认 28 更适合长句子。
+**⚠️ Subtitle Overflow Protection**: `_make_subtitle()` uses `scale_to_fit_width` to ensure long text does not exceed left/right frame boundaries. `font_size=22` is better than the default 28 for long sentences.
 
-**⚠️ 字幕同步**：`FadeIn(sub)` 必须放在 voiceover 块内的**第一个** `self.play()` 调用中，否则字幕会滞后于声音。
+**⚠️ Subtitle Sync**: `FadeIn(sub)` must be placed in the **first** `self.play()` call within the voiceover block; otherwise, the subtitle will lag behind the voice.
 
-### 方案 2：SRT 外挂字幕（ffmpeg 烧录）
+### Option 2: SRT External Subtitles (ffmpeg Burn-in)
 
-使用 manim-voiceover 自动生成的 SRT 文件，通过 ffmpeg 烧录到视频。
+Use the SRT files auto-generated by manim-voiceover and burn them into the video with ffmpeg.
 
-**优点**：字幕样式灵活，可单独编辑 SRT 文件
-**缺点**：需要 ffmpeg + libass（安装 ffmpeg-full 即可）
+**Pros**: Flexible subtitle styling; SRT files can be edited independently
+**Cons**: Requires ffmpeg + libass (install ffmpeg-full)
 
 ```bash
 ffmpeg -y -i video.mp4 \
@@ -189,23 +189,23 @@ ffmpeg -y -i video.mp4 \
     output_subtitled.mp4
 ```
 
-### ⚠️ 避免双字幕
+### ⚠️ Avoid Double Subtitles
 
-**不要** 同时使用画面内字幕（`_make_subtitle`）和 SRT 烧录，否则画面上会出现两层重叠的字幕。
+**Do not** use both in-scene subtitles (`_make_subtitle`) and SRT burn-in simultaneously, otherwise two overlapping subtitle layers will appear.
 
-**正确做法**：二选一
-- **方案 A（推荐）**：代码内使用 `_make_subtitle()` 渲染字幕，不烧录 SRT。字幕随动画同步，无需额外处理。
-- **方案 B**：代码内不渲染字幕，使用 ffmpeg 烧录 SRT。字幕样式可通过 `force_style` 灵活控制。
+**Correct Approach**: Choose one
+- **Option A (Recommended)**: Render subtitles in code with `_make_subtitle()`, do not burn SRT. Subtitles sync with animation, no extra processing needed.
+- **Option B**: Do not render subtitles in code, burn SRT with ffmpeg. Subtitle styling can be flexibly controlled via `force_style`.
 
 ---
 
-## 常用动画模式
+## Common Animation Patterns
 
-### 标题 + 副标题
+### Title + Subtitle
 
 ```python
-title = Text("主标题", font_size=48, color=BLUE)
-subtitle = Text("副标题", font_size=28, color=GRAY)
+title = Text("Main Title", font_size=48, color=BLUE)
+subtitle = Text("Subtitle", font_size=28, color=GRAY)
 subtitle.next_to(title, DOWN, buff=0.5)
 
 self.play(Write(title))
@@ -214,7 +214,7 @@ self.wait(1)
 self.play(title.animate.to_edge(UP), FadeOut(subtitle))
 ```
 
-### 公式推导
+### Formula Derivation
 
 ```python
 eq1 = MathTex(r"x^2 + y^2 = r^2")
@@ -226,7 +226,7 @@ self.wait(0.5)
 self.play(TransformMatchingShapes(eq1.copy(), eq2))
 ```
 
-### 图形变换
+### Shape Transformation
 
 ```python
 circle = Circle(radius=1.5, color=RED, fill_opacity=0.5)
@@ -237,7 +237,7 @@ self.wait(0.5)
 self.play(Transform(circle, square))
 ```
 
-### 坐标系 + 函数图像
+### Coordinate System + Function Graph
 
 ```python
 axes = Axes(
@@ -252,7 +252,7 @@ self.play(Create(axes))
 self.play(Create(graph), Write(label))
 ```
 
-### 分组 + 排列
+### Grouping + Layout
 
 ```python
 items = VGroup(
@@ -266,21 +266,21 @@ items.scale(0.8)
 self.play(LaggedStart(*[Create(item) for item in items], lag_ratio=0.3))
 ```
 
-### 场景过渡
+### Scene Transition
 
 ```python
-# 淡出所有对象，开始新场景
+# Fade out all objects, start new scene
 self.play(*[FadeOut(mob) for mob in self.mobjects])
 self.wait(0.3)
 ```
 
 ---
 
-## 高级技巧
+## Advanced Tips
 
-### 多场景拼接
+### Multi-Scene Concatenation
 
-一个文件可包含多个 Scene 类，按顺序渲染后用 ffmpeg 拼接：
+A single file can contain multiple Scene classes. Render them in order, then concatenate with ffmpeg:
 
 ```bash
 # Render all scenes
@@ -295,27 +295,27 @@ echo "file 'Scene3.mp4'" >> list.txt
 ffmpeg -f concat -safe 0 -i list.txt -c copy final.mp4
 ```
 
-### 自定义字体
+### Custom Fonts
 
 ```python
-Text("自定义字体", font="PingFang SC", font_size=36)
+Text("Custom font text", font="PingFang SC", font_size=36)
 ```
 
-### 颜色主题
+### Color Themes
 
 ```python
-# Manim 内置颜色常量
+# Manim built-in color constants
 RED, GREEN, BLUE, YELLOW, PURPLE, ORANGE, PINK, GOLD, WHITE, GRAY
-# Hex 颜色
-Text("文字", color="#FF6B6B")
+# Hex colors
+Text("Text", color="#FF6B6B")
 ```
 
-### LaTeX + Manim 联动
+### LaTeX + Manim Integration
 
 ```python
-# 行内公式
+# Inline formula
 formula = MathTex(r"E = mc^2", font_size=72, color=YELLOW)
-# 带对齐的多行公式
+# Multi-line aligned formula
 aligned = MathTex(
     r"f(x) &= x^2 + 2x + 1 \\",
     r"&= (x+1)^2"
@@ -324,98 +324,98 @@ aligned = MathTex(
 
 ---
 
-## 排错指南
+## Troubleshooting Guide
 
 ### 1. `ModuleNotFoundError: No module named 'pkg_resources'`
 
-**原因**：Python 3.12+ 中 setuptools 变更
+**Cause**: setuptools changes in Python 3.12+
 
-**解决**：
+**Solution**:
 ```bash
 pip install "setuptools>=69.0,<72.0"
 ```
 
 ### 2. `UnknownCodecError: libx264`
 
-**原因**：Manim 硬编码使用 `libx264` 编码器，但当前 ffmpeg 未编译 libx264 支持（常见于 conda 环境的 ffmpeg 默认 `--disable-gpl`）。
+**Cause**: Manim hardcodes the `libx264` encoder, but the current ffmpeg was compiled without libx264 support (common in conda environments where ffmpeg defaults to `--disable-gpl`).
 
-**解决**：
+**Solution**:
 ```bash
-# 方案 A：macOS Homebrew — 安装 ffmpeg-full（推荐，一次性解决 libx264 + libass）
+# Option A: macOS Homebrew — Install ffmpeg-full (recommended, includes libx264 + libass)
 brew tap homebrew-ffmpeg/ffmpeg
 brew install homebrew-ffmpeg/ffmpeg/ffmpeg-full
 brew link --force ffmpeg-full
 
-# 方案 B：Conda 环境 — 安装 x264 包
+# Option B: Conda environment — Install x264 package
 conda install x264 -c conda-forge
 
-# 验证
+# Verify
 ffmpeg -codecs 2>&1 | grep libx264
-# 输出应包含: encoders: libx264 libx264rgb
+# Output should include: encoders: libx264 libx264rgb
 ```
 
 ### 3. `ffmpeg: No such filter: 'subtitles'`
 
-**原因**：ffmpeg 编译时未包含 libass
+**Cause**: ffmpeg was compiled without libass
 
-**解决**（macOS）：
+**Solution** (macOS):
 ```bash
-# ffmpeg-full 已包含 libass，如已安装则无需额外操作
+# ffmpeg-full already includes libass; no extra steps if already installed
 brew tap homebrew-ffmpeg/ffmpeg
 brew install homebrew-ffmpeg/ffmpeg/ffmpeg-full
 brew link --force ffmpeg-full
 
-# 验证
+# Verify
 ffmpeg -filters 2>&1 | grep subtitles
 ```
 
-### 4. gTTS 报错 `gTTSError: Connection error`
+### 4. gTTS Error: `gTTSError: Connection error`
 
-**原因**：网络无法访问 Google TTS 服务
+**Cause**: Network cannot access Google TTS service
 
-**解决**：
+**Solution**:
 ```python
-# 方案 1: 使用代理
+# Option 1: Use a proxy
 import os
 os.environ['HTTP_PROXY'] = 'http://proxy:port'
 
-# 方案 2: 切换为离线 TTS
+# Option 2: Switch to offline TTS
 from manim_voiceover.services.pyttsx3 import Pyttsx3Service
 self.set_speech_service(Pyttsx3Service())
 ```
 
-### 5. 中文文字显示为方块
+### 5. Chinese Characters Display as Blocks
 
-**原因**：系统缺少中文字体
+**Cause**: System lacks Chinese fonts
 
-**解决**：
+**Solution**:
 ```bash
 # Linux
 sudo apt install fonts-noto-cjk
 
 # macOS (built-in PingFang SC, usually OK)
 
-# 指定字体
-Text("文字", font="Noto Sans CJK SC")
+# Specify font
+Text("Text", font="Noto Sans CJK SC")
 ```
 
 ### 6. `WARNING: Some options were not used: shortest, metadata`
 
-**原因**：Manim 调用 FFmpeg 时传递了未使用的选项
+**Cause**: Manim passes unused options when calling FFmpeg
 
-**解决**：可安全忽略，不影响输出视频。
+**Solution**: Can be safely ignored; does not affect the output video.
 
-### 7. 渲染速度慢
+### 7. Slow Rendering Speed
 
-**建议**：
-- 开发阶段使用 `-ql`（480p15）快速预览
-- 最终输出使用 `-qh`（1080p60）或 `-qp`（4K）
-- voiceover 音频有缓存，第二次渲染会快很多
+**Suggestions**:
+- Use `-ql` (480p15) for quick preview during development
+- Use `-qh` (1080p60) or `-qp` (4K) for final output
+- Voiceover audio is cached; second render will be much faster
 
-### 8. 视频无声音
+### 8. Video Has No Sound
 
-**检查**：
-- 确认使用 `VoiceoverScene` 而非 `Scene`
-- 确认调用了 `self.set_speech_service()`
-- 确认 voiceover 块内有动画（空块不会产生音频）
-- 检查 `media/voiceovers/` 目录是否有 `.mp3` 文件
+**Checklist**:
+- Confirm using `VoiceoverScene` instead of `Scene`
+- Confirm `self.set_speech_service()` is called
+- Confirm there are animations inside the voiceover block (empty blocks produce no audio)
+- Check if `.mp3` files exist in `media/voiceovers/` directory
